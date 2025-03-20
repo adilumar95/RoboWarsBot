@@ -33,11 +33,11 @@ async def send_invoice(message: types.Message):
     else:
         await message.answer("❌ Error connecting to payment server.")
 
-# ✅ Start polling for messages (Fix for aiogram v3)
+# ✅ Start polling properly (Fixed aiogram v3 startup issue)
 async def main():
-    dp.startup.register(lambda _: logging.info("🚀 Bot started successfully!"))
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+    dp.include_router(dp)  # Properly register dispatcher
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
