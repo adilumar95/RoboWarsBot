@@ -20,7 +20,7 @@ async def send_invoice(message: types.Message):
     logging.info(f"💰 /buy command received from user {user_id}")
 
     # Call the invoice creation endpoint
-    response = requests.post("https://your-render-server.com/create-invoice", json={"user_id": user_id})
+    response = requests.post("https://python-payments-server.onrender.com/create-invoice", json={"user_id": user_id})
 
     if response.status_code == 200:
         invoice_data = response.json()
