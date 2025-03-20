@@ -1,13 +1,15 @@
 import logging
 import requests
 import asyncio
+import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
+from flask import Flask
 
 # 🔹 Replace with your actual Telegram Bot Token
 TOKEN = "7214027935:AAFQ3JP7nRTihzIjJKRT8yRjJBESENHibJ4"
 bot = Bot(token=TOKEN)
-dp = Dispatcher()  # No need to attach dp to itself
+dp = Dispatcher()
 
 # ✅ Log that the bot is running
 logging.basicConfig(level=logging.INFO)
@@ -33,10 +35,22 @@ async def send_invoice(message: types.Message):
     else:
         await message.answer("❌ Error connecting to payment server.")
 
-# ✅ Start polling properly
-async def main():
+# ✅ Dummy Flask Web Server to Keep Render Active
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "✅ Telegram Bot is Running!"
+
+async def start_bot():
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)  # Start polling without include_router()
+    asyncio.create_task(dp.start_polling(bot))  # Start bot polling in background
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # ✅ Start Bot in Background
+    loop = asyncio.get_event_loop()
+    loop.create_task(start_bot())  
+    
+    # ✅ Start Flask Web Server to Prevent Render Shutdown
+    port = int(os.environ.get("PORT", 8080))  # Render requires a web port
+    app.run(host="0.0.0.0", port=port)
