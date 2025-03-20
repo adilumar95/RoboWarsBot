@@ -2,7 +2,7 @@ import logging
 import requests
 import asyncio
 from aiogram import Bot, Dispatcher, types
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import Command
 
 # 🔹 Replace with your actual Telegram Bot Token
 TOKEN = "7214027935:AAFQ3JP7nRTihzIjJKRT8yRjJBESENHibJ4"
@@ -33,10 +33,9 @@ async def send_invoice(message: types.Message):
     else:
         await message.answer("❌ Error connecting to payment server.")
 
-# ✅ Start the bot using asyncio (new aiogram v3 format)
+# ✅ Start the bot using asyncio (Fixed aiogram v3 issue)
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
-    dp.include_router(dp)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
