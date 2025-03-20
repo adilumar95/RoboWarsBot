@@ -5,7 +5,6 @@ import os
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from flask import Flask
-from threading import Thread
 
 # 🔹 Replace with your actual Telegram Bot Token
 TOKEN = "7214027935:AAFQ3JP7nRTihzIjJKRT8yRjJBESENHibJ4"
@@ -36,11 +35,6 @@ async def send_invoice(message: types.Message):
     else:
         await message.answer("❌ Error connecting to payment server.")
 
-# ✅ Start polling properly
-async def start_bot():
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
-
 # ✅ Flask Web Server to Keep Render Running
 app = Flask(__name__)
 
@@ -48,14 +42,16 @@ app = Flask(__name__)
 def home():
     return "✅ Telegram Bot is Running!"
 
-# ✅ Run Flask Server and Start Bot in Background
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    task1 = asyncio.create_task(dp.start_polling(bot))  # Run bot
+    task2 = asyncio.to_thread(run_flask)  # Run Flask in a separate thread
+    await asyncio.gather(task1, task2)
+
+# ✅ Function to Start Flask Server
 def run_flask():
     port = int(os.environ.get("PORT", 8080))  # Render requires a port
     app.run(host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
-    # Start bot in a separate thread
-    Thread(target=lambda: asyncio.run(start_bot()), daemon=True).start()
-    
-    # Start Flask server (keeps Render active)
-    run_flask()
+    asyncio.run(main())  # Run everything in a single event loop
