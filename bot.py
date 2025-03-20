@@ -1,19 +1,20 @@
 import logging
 import requests
+import asyncio
 from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
+from aiogram.filters import CommandStart, Command
 
 # 🔹 Replace with your actual Telegram Bot Token
 TOKEN = "7214027935:AAFQ3JP7nRTihzIjJKRT8yRjJBESENHibJ4"
 bot = Bot(token=TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
 # ✅ Log that the bot is running
 logging.basicConfig(level=logging.INFO)
 logging.info("✅ Bot is running and listening for commands...")
 
 # 🛒 Handle /buy Command to Send Invoice
-@dp.message_handler(commands=['buy'])
+@dp.message(Command("buy"))
 async def send_invoice(message: types.Message):
     user_id = message.from_user.id
     logging.info(f"💰 /buy command received from user {user_id}")
@@ -26,12 +27,17 @@ async def send_invoice(message: types.Message):
         invoice_url = invoice_data.get("invoice_url", "")
 
         if invoice_url:
-            await message.reply(f"🛍 Click below to purchase coins:\n[Pay with Telegram Stars]({invoice_url})", parse_mode="Markdown")
+            await message.answer(f"🛍 Click below to purchase coins:\n[Pay with Telegram Stars]({invoice_url})", parse_mode="Markdown")
         else:
-            await message.reply("❌ Failed to generate invoice. Try again later.")
+            await message.answer("❌ Failed to generate invoice. Try again later.")
     else:
-        await message.reply("❌ Error connecting to payment server.")
+        await message.answer("❌ Error connecting to payment server.")
 
-# Start polling
+# ✅ Start the bot using asyncio (new aiogram v3 format)
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    dp.include_router(dp)
+    await dp.start_polling(bot)
+
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
